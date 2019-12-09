@@ -1,0 +1,17 @@
+{
+  "parser": "babel-eslint",
+  "extends": [
+    "airbnb",
+    "prettier",
+    "prettier/react"
+  ],
+  "rules": {
+    "quotes": "off",
+    "comma-dangle": "off",
+    "no-use-before-define": ["error", { "functions": true, "classes": true, "variables": false }],
+    "no-console":"off"
+  },
+  "globals": {
+    "fetch": false
+  }
+}

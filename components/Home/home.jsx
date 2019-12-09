@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useDispatch, useSelector } from 'react-redux'
 import {
   StyleSheet,
   Text,
@@ -9,12 +10,15 @@ import {
   Image,
   TouchableOpacity
 } from "react-native";
-import fetchMovies from "../../backend/fetchdata";
+import propTypes from 'prop-types'
 
-const Item = movie => {
+
+const Item = (navigation, movie) => {
   return (
     <View style={styles.links}>
-      <TouchableOpacity onPress={() => console.log("hello there")}>
+      <TouchableOpacity onPress={() => navigation.navigate('Review', {
+        id: movie.imdbID
+      })}>
         <Image
           style={{ width: 50, height: 50 }}
           source={{ uri: movie.Poster }}
@@ -25,25 +29,31 @@ const Item = movie => {
   );
 };
 
-const Home = () => {
+const Home = ({ navigation }) => {
+  const dispatch = useDispatch();
+  const { movies, loading, error, page } = useSelector(state => state.movie)
   const [title, setTitle] = useState("");
-  const [movies, setMovies] = useState([]);
-  const [page, setPage] = useState(1);
 
-  const search = async () => {
-    const data = await fetchMovies(title, 1);
-    setMovies([data.Search]);
-    setPage(2);
+  const search = () => {
+    dispatch({
+      type: "LOAD_MOVIES",
+      operation: "SEARCH",
+      title,
+      page: 1
+    })
   };
 
-  const loadMore = async () => {
-    const data = await fetchMovies(title, page);
-    setMovies([...movies, ...data.Search]);
-    setPage(prevPage => prevPage + 1);
+  const loadMore = () => {
+    dispatch({
+      type: "LOAD_MOVIES",
+      operation: "LOAD",
+      title,
+      page
+    })
   };
 
   return (
-    <View>
+    <View style={{ padding: 10}}>
       <View style={styles.container}>
         <TextInput
           style={styles.input}
@@ -53,18 +63,31 @@ const Home = () => {
         />
         <Button title="submit" onPress={() => search()} />
       </View>
+      
       <FlatList
         contentContainerStyle={{}}
         data={movies}
-        renderItem={({ item }) => Item(item)}
+        renderItem={({ item }) => Item(navigation, item)}
         keyExtractor={(item, index) => index.toString()}
         initialNumToRender={5}
         onEndReachedThreshold={1}
         onEndReached={() => loadMore()}
       />
+      {loading && (
+        <Text>Loading...</Text>
+      )}
+      {error && (
+        <Text>Error in retrieving titles</Text>
+      )}
     </View>
   );
 };
+
+Home.propTypes = {
+  navigation: propTypes.shape({
+    navigate: propTypes.func.isRequired
+  }).isRequired
+}
 
 export default Home;
 
